@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import time
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 WEEK_MINUTES = 10080
 FIVE_HOURS = 18000
 LONG_CONTEXT = 272000
@@ -299,11 +299,12 @@ def clock_time(timestamp):
 def synthetic_five(weekly, points, now, activity_start=None):
     duration = weekly["minutes"] * 60
     start = weekly["reset"] - duration
-    slot_start = rounded_activity_start(activity_start) if activity_start else (
-        start + max(0, (now - start) // FIVE_HOURS) * FIVE_HOURS)
+    anchor = rounded_activity_start(activity_start) if activity_start else start
+    slot_start = anchor + max(0, (now - anchor) // FIVE_HOURS) * FIVE_HOURS
     slot_end = min(slot_start + FIVE_HOURS, weekly["reset"])
-    candidates = sorted((p for p in points if p.get("reset") == weekly["reset"]
-                         and slot_start - 600 <= p.get("at", 0) <= now), key=lambda p: p["at"])
+    candidates = (p for p in points if p.get("reset") == weekly["reset"]
+                  and slot_start - 600 <= p.get("at", 0) <= now)
+    candidates = sorted(candidates, key=lambda p: abs(p["at"] - slot_start))
     baseline = candidates[0] if candidates else {"at": now, "used": weekly["used"]}
     weekly_delta = max(0, weekly["used"] - baseline["used"])
     allocated = 100 * (slot_end - slot_start) / duration
