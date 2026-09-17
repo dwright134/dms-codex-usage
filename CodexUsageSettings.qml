@@ -5,7 +5,7 @@ import qs.Modules.Plugins
 
 PluginSettings {
     id: root
-    pluginId: "codexUsage"
+    pluginId: "codexusage"
 
     Rectangle {
         width: parent.width

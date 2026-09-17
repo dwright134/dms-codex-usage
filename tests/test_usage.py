@@ -121,6 +121,7 @@ class MetadataTests(unittest.TestCase):
         manifest = json.loads((root / "plugin.json").read_text())
         self.assertEqual((root / "VERSION").read_text().strip(), manifest["version"])
         self.assertEqual(manifest["version"], usage.VERSION)
+        self.assertEqual(manifest["id"], manifest["id"].lower())
 
     def test_required_files_exist(self):
         root = Path(__file__).resolve().parents[1]

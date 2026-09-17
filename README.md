@@ -25,11 +25,11 @@ A DankBar widget for live Codex limits, quota pacing, local token activity, and 
 
 ## Install
 
-Clone the repository into the DMS plugin directory. The destination directory must be named `codexUsage` because that is the plugin ID.
+Clone the repository into the DMS plugin directory. The destination directory must be named `codexusage` because that is the plugin ID.
 
 ```sh
 git clone https://github.com/dwright134/dms-codex-usage.git \
-  ~/.config/DankMaterialShell/plugins/codexUsage
+  ~/.config/DankMaterialShell/plugins/codexusage
 ```
 
 Open DMS Settings, enable **Codex Usage**, and add it to DankBar. Restart DMS if the plugin does not appear immediately.
@@ -39,7 +39,7 @@ Open DMS Settings, enable **Codex Usage**, and add it to DankBar. Restart DMS if
 Pull the latest version and restart DMS:
 
 ```sh
-git -C ~/.config/DankMaterialShell/plugins/codexUsage pull --ff-only
+git -C ~/.config/DankMaterialShell/plugins/codexusage pull --ff-only
 dms restart
 ```
 

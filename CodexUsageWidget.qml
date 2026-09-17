@@ -68,8 +68,8 @@ PluginComponent {
             + "\nCached input " + compact(b.cached_input_tokens || 0) + " (included in input)";
     }
     function savePreference(key, value) {
-        SettingsData.setPluginSetting("codexUsage", key, value);
-        pluginData = SettingsData.getPluginSettingsForPlugin("codexUsage");
+        SettingsData.setPluginSetting("codexusage", key, value);
+        pluginData = SettingsData.getPluginSettingsForPlugin("codexusage");
     }
     function checkAlerts() {
         if (!alertsEnabled || snapshotStale || !loggedIn) return;
@@ -263,8 +263,8 @@ PluginComponent {
 
     // --- Data fetching ---
 
-    property string scriptPath: PluginService.pluginDirectory + "/codexUsage/get-codex-usage.py"
-    property string logoSource: "file://" + PluginService.pluginDirectory + "/codexUsage/icon.svg"
+    property string scriptPath: PluginService.pluginDirectory + "/codexusage/get-codex-usage.py"
+    property string logoSource: "file://" + PluginService.pluginDirectory + "/codexusage/icon.svg"
 
     Process {
         id: usageProcess
