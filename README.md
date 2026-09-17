@@ -53,7 +53,7 @@ Some Codex plans expose only a weekly limit. The widget divides an evenly distri
 daily share of weekly quota = 24 / 168 = 14.286%
 ```
 
-Each daily period runs from local midnight to the next midnight. When the weekly quota resets during a day, the widget prorates the periods before and after the reset. It saves weekly quota snapshots and compares the current percentage with the closest snapshot at the start of the period. Consuming about 7.14 percentage points of weekly quota uses 50% of a full daily budget. The pace marker compares that usage with the time elapsed in the period.
+Each daily period runs from local midnight to the next midnight and always receives one seventh of the weekly quota. It saves weekly quota snapshots and compares the current percentage with the closest snapshot at the start of the period. Consuming about 7.14 percentage points of weekly quota uses 50% of the daily budget. The pace marker compares that usage with the time elapsed in the day. Pace differences are percentage points. If the weekly quota resets during the day, the estimate uses the snapshots available after the reset and marks the result as partial history.
 
 This is a pacing tool. It does not represent an OpenAI-enforced daily limit. A day may show partial history while the widget collects its baseline. If Codex reports an enforced five-hour limit, the widget displays that limit instead of the daily estimate.
 

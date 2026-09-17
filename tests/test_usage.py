@@ -96,20 +96,22 @@ class PacingTests(unittest.TestCase):
         self.assertTrue(result["estimated"])
         self.assertEqual(result["reset"], int((midnight + dt.timedelta(days=1)).timestamp()))
 
-    def test_synthetic_daily_budget_uses_partial_week_day(self):
+    def test_synthetic_daily_budget_stays_fixed_when_week_starts_midday(self):
         local = dt.datetime.now().astimezone().tzinfo
         midnight = dt.datetime(2026, 9, 17, tzinfo=local)
         week_start = int((midnight + dt.timedelta(hours=6)).timestamp())
         now = int((midnight + dt.timedelta(hours=15)).timestamp())
         reset = week_start + 7 * 86400
-        allocated = 100 * 18 / 168
+        allocated = 100 / 7
         weekly = {"used": 4 + allocated / 2, "minutes": 10080, "reset": reset}
         points = [{"at": week_start, "used": 4, "reset": reset}]
         result = usage.synthetic_daily(weekly, points, now)
         self.assertAlmostEqual(result["used"], 50.0, places=1)
-        self.assertAlmostEqual(result["pace_delta"], 0.0, places=1)
-        self.assertEqual(result["minutes"], 18 * 60)
+        self.assertAlmostEqual(result["pace_delta"], -12.5, places=1)
+        self.assertEqual(result["minutes"], 24 * 60)
+        self.assertEqual(result["reset"], int((midnight + dt.timedelta(days=1)).timestamp()))
         self.assertIn("Daily pacing", result["description"])
+        self.assertIn("partial history", result["description"])
 
     def test_late_daily_baseline_starts_pacing_after_five_minutes(self):
         local = dt.datetime.now().astimezone().tzinfo

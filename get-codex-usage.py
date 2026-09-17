@@ -10,8 +10,9 @@ import shutil
 import subprocess
 import time
 
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 WEEK_MINUTES = 10080
+DAY_MINUTES = 1440
 LONG_CONTEXT = 272000
 
 # USD per million text tokens: input, cached input, cache write, output.
@@ -279,9 +280,9 @@ def pace(used, minutes, reset, now):
     if used >= 100:
         return difference, "Quota reached"
     if difference >= 5:
-        return difference, f"{round(difference)}% over pace"
+        return difference, f"{round(difference)} points over pace"
     if difference <= -5:
-        return difference, f"{round(-difference)}% under pace"
+        return difference, f"{round(-difference)} points under pace"
     return difference, "On pace"
 
 
@@ -297,23 +298,24 @@ def synthetic_daily(weekly, points, now):
     midnight = dt.datetime.combine(local_now.date(), dt.time.min, local_now.tzinfo)
     next_midnight = dt.datetime.combine(local_now.date() + dt.timedelta(days=1),
                                         dt.time.min, local_now.tzinfo)
-    slot_start = max(int(midnight.timestamp()), week_start)
-    slot_end = min(int(next_midnight.timestamp()), weekly["reset"])
+    slot_start = int(midnight.timestamp())
+    slot_end = int(next_midnight.timestamp())
+    tracking_start = max(slot_start, week_start)
     candidates = (p for p in points if p.get("reset") == weekly["reset"]
-                  and slot_start - 600 <= p.get("at", 0) <= now)
-    candidates = sorted(candidates, key=lambda p: abs(p["at"] - slot_start))
+                  and tracking_start - 600 <= p.get("at", 0) <= now)
+    candidates = sorted(candidates, key=lambda p: abs(p["at"] - tracking_start))
     baseline = candidates[0] if candidates else {"at": now, "used": weekly["used"]}
     weekly_delta = max(0, weekly["used"] - baseline["used"])
-    allocated = 100 * (slot_end - slot_start) / duration
+    allocated = 100 * DAY_MINUTES / weekly["minutes"]
     used = 100 * weekly_delta / allocated if allocated else 0
     coverage = max(0, min(now, slot_end) - slot_start)
     difference = used - 100 * coverage / max(1, slot_end - slot_start)
     if baseline["at"] > slot_start + 600 and now - baseline["at"] < 300:
         label = "Collecting a daily baseline"
     elif difference >= 5:
-        label = f"{round(difference)}% over pace"
+        label = f"{round(difference)} points over pace"
     elif difference <= -5:
-        label = f"{round(-difference)}% under pace"
+        label = f"{round(-difference)} points under pace"
     else:
         label = "On pace"
     end_label = "midnight" if slot_end == int(next_midnight.timestamp()) else clock_time(slot_end)

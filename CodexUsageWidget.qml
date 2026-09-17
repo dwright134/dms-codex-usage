@@ -308,7 +308,7 @@ PluginComponent {
         }
     }
 
-    // --- Taskbar pills (ring shows tightest used limit) ---
+    // --- Taskbar pills ---
 
     function limitText(id) {
         var b = buckets[id];
@@ -327,12 +327,7 @@ PluginComponent {
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
-                text: "5h " + root.limitText("primary")
-                font.pixelSize: Theme.barTextSize(root.barThickness, root.barConfig ? root.barConfig.fontScale : undefined, root.barConfig ? root.barConfig.maximizeWidgetText : undefined)
-                color: Theme.surfaceText
-            }
-            StyledText {
-                text: "Week " + root.limitText("secondary")
+                text: "Daily " + root.limitText("primary")
                 font.pixelSize: Theme.barTextSize(root.barThickness, root.barConfig ? root.barConfig.fontScale : undefined, root.barConfig ? root.barConfig.maximizeWidgetText : undefined)
                 color: Theme.surfaceText
             }
@@ -352,7 +347,7 @@ PluginComponent {
             }
 
             Repeater {
-                model: ["primary", "secondary"]
+                model: ["primary"]
                 delegate: Column {
                     required property string modelData
                     anchors.horizontalCenter: parent.horizontalCenter
