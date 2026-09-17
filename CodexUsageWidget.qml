@@ -263,8 +263,9 @@ PluginComponent {
 
     // --- Data fetching ---
 
-    property string scriptPath: PluginService.pluginDirectory + "/codexusage/get-codex-usage.py"
-    property string logoSource: "file://" + PluginService.pluginDirectory + "/codexusage/icon.svg"
+    property string pluginPath: PluginService.getPluginPath(root.pluginId)
+    property string scriptPath: pluginPath + "/get-codex-usage.py"
+    property string logoSource: "file://" + pluginPath + "/icon.svg"
 
     Process {
         id: usageProcess
