@@ -697,6 +697,7 @@ PluginComponent {
                             required property string modelData
                             property var bucket: root.buckets[modelData] || ({})
                             property bool recorded: bucket.REMAINING !== undefined
+                            property bool estimated: bucket.ESTIMATED === "true"
                             property real used: recorded ? Math.max(0, Math.min(100, (1-bucket.REMAINING)*100)) : 0
                             property bool expired: bucket.RESET ? new Date(bucket.RESET).getTime() <= root.countdownNow : false
                             property real paceDelta: Number(bucket.PACE_DELTA || 0)
@@ -746,7 +747,11 @@ PluginComponent {
                                 StyledText {
                                     width: parent.width
                                     horizontalAlignment: root.isVertical ? Text.AlignHCenter : Text.AlignLeft
-                                    text: quotaCard.expired ? "Waiting for fresh data" : (quotaCard.bucket.RESET ? "Reset in " + root.countdown(quotaCard.bucket.RESET) : "Reset unavailable")
+                                    text: quotaCard.expired
+                                          ? (quotaCard.estimated ? "Five-hour session complete" : "Waiting for fresh data")
+                                          : (quotaCard.bucket.RESET
+                                             ? (quotaCard.estimated ? "Ends in " : "Reset in ") + root.countdown(quotaCard.bucket.RESET)
+                                             : "Reset unavailable")
                                     font.pixelSize: 11
                                     color: quotaCard.expired ? Theme.warning : Theme.surfaceVariantText
                                     wrapMode: Text.WordWrap
@@ -762,7 +767,7 @@ PluginComponent {
                                 StyledText {
                                     width: parent.width
                                     horizontalAlignment: root.isVertical ? Text.AlignHCenter : Text.AlignLeft
-                                    visible: quotaCard.bucket.ESTIMATED === "true"
+                                    visible: quotaCard.estimated
                                     text: quotaCard.bucket.DESC || "Estimated from weekly quota change"
                                     font.pixelSize: 10; color: Theme.surfaceVariantText
                                     wrapMode: Text.WordWrap

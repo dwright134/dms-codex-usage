@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import time
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 WEEK_MINUTES = 10080
 FIVE_HOURS = 18000
 LONG_CONTEXT = 272000
@@ -115,6 +115,8 @@ def parse_session(path):
                 day = stamp.astimezone().date().isoformat()
                 item = days.setdefault(day, {"tokens": 0, "cost": 0, "unpriced": 0,
                                              "parts": {}, "models": {}})
+                timestamp = int(stamp.timestamp())
+                item["first"] = min(item.get("first", timestamp), timestamp)
                 cost = estimate_cost(model, parts)
                 item["tokens"] += tokens
                 item["cost"] += cost or 0
@@ -156,6 +158,8 @@ def activity(root, cache_path, today=None):
                                                "parts": {}, "models": {}})
                 for field in ("tokens", "cost", "unpriced"):
                     target[field] += source.get(field, 0)
+                if source.get("first"):
+                    target["first"] = min(target.get("first", source["first"]), source["first"])
                 for field, value in source.get("parts", {}).items():
                     target["parts"][field] = target["parts"].get(field, 0) + value
                 for name, values in source.get("models", {}).items():
@@ -205,7 +209,8 @@ def activity(root, cache_path, today=None):
             "week_cost": round(week["cost"], 4), "month_cost": round(month["cost"], 4),
             "unpriced_week": round(week["unpriced"]), "previous_week": round(prior["tokens"]),
             "daily": daily[-7:], "daily30": daily, "sessions": len(sessions), "models": models,
-            "breakdown_week": {k: round(v) for k, v in breakdown.items()}, "quota_points": points}
+            "breakdown_week": {k: round(v) for k, v in breakdown.items()},
+            "first_activity": days.get(today.isoformat(), {}).get("first"), "quota_points": points}
 
 
 def app_server(codex_home, timeout=12):
@@ -281,10 +286,21 @@ def pace(used, minutes, reset, now):
     return difference, "On pace"
 
 
-def synthetic_five(weekly, points, now):
+def rounded_activity_start(timestamp):
+    """Round a local activity timestamp to the nearest five-minute mark."""
+    return int((timestamp + 150) // 300 * 300)
+
+
+def clock_time(timestamp):
+    value = dt.datetime.fromtimestamp(timestamp).astimezone().strftime("%I:%M %p")
+    return value.lstrip("0")
+
+
+def synthetic_five(weekly, points, now, activity_start=None):
     duration = weekly["minutes"] * 60
     start = weekly["reset"] - duration
-    slot_start = start + max(0, (now - start) // FIVE_HOURS) * FIVE_HOURS
+    slot_start = rounded_activity_start(activity_start) if activity_start else (
+        start + max(0, (now - start) // FIVE_HOURS) * FIVE_HOURS)
     slot_end = min(slot_start + FIVE_HOURS, weekly["reset"])
     candidates = sorted((p for p in points if p.get("reset") == weekly["reset"]
                          and slot_start - 600 <= p.get("at", 0) <= now), key=lambda p: p["at"])
@@ -292,7 +308,7 @@ def synthetic_five(weekly, points, now):
     weekly_delta = max(0, weekly["used"] - baseline["used"])
     allocated = 100 * (slot_end - slot_start) / duration
     used = 100 * weekly_delta / allocated if allocated else 0
-    coverage = max(0, now - baseline["at"])
+    coverage = max(0, min(now, slot_end) - slot_start)
     difference = used - 100 * coverage / max(1, slot_end - slot_start)
     if coverage < 300:
         label = "Collecting a five-hour baseline"
@@ -304,7 +320,8 @@ def synthetic_five(weekly, points, now):
         label = "On pace"
     return {"used": used, "minutes": round((slot_end - slot_start) / 60), "reset": slot_end,
             "pace_delta": difference, "pace": label, "estimated": True,
-            "description": f"Estimated from {weekly_delta:.1f}% of weekly quota consumed"
+            "description": f"Pacing from {clock_time(slot_start)} to {clock_time(slot_end)} · "
+                           f"estimated from {weekly_delta:.1f}% of weekly quota consumed"
                            + ("" if baseline["at"] <= slot_start + 600 else " · partial history")}
 
 
@@ -333,7 +350,7 @@ def main():
     codex_home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser()
     cache_root = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))) / "dms-codex-usage"
     stats = activity([codex_home / "sessions", codex_home / "archived_sessions"],
-                     cache_root / "activity-v3.json")
+                     cache_root / "activity-v4.json")
     now = int(time.time())
     live = False
     server_at = now
@@ -368,7 +385,8 @@ def main():
         weekly = {"used": float(latest["used"]), "minutes": WEEK_MINUTES,
                   "reset": int(latest["reset"]),
                   "description": "Last quota recorded in a local Codex session"}
-    five = actual_five or (synthetic_five(weekly, history, now) if weekly else None)
+    five = actual_five or (synthetic_five(weekly, history, now, stats.get("first_activity"))
+                           if weekly else None)
 
     usage = server.get("usage") or {}
     summary = usage.get("summary") or {}

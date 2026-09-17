@@ -53,9 +53,9 @@ Some Codex plans expose only a weekly limit. The widget divides an evenly distri
 five-hour share of weekly quota = 5 / 168 = 2.976%
 ```
 
-It saves weekly quota snapshots and compares the current percentage with the percentage at the start of the current five-hour block. Consuming 1.5 percentage points of weekly quota uses about 50% of that block's suggested budget.
+The session starts with the day's first recorded Codex token activity, rounded to the nearest five minutes. It saves weekly quota snapshots and compares the current percentage with the percentage at that starting point. Consuming 1.5 percentage points of weekly quota uses about 50% of the suggested five-hour budget.
 
-This is a pacing tool. It does not represent an OpenAI-enforced five-hour limit. The first block may show partial history while the widget collects its baseline.
+After five hours, the completed session remains as the day's pacing baseline instead of moving to an unrelated fixed block. This is a pacing tool. It does not represent an OpenAI-enforced five-hour limit. A session may show partial history while the widget collects its baseline.
 
 ## API-equivalent value
 

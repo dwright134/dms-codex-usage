@@ -77,6 +77,8 @@ class SessionTests(unittest.TestCase):
             self.assertEqual(result["today"], 150)
             self.assertEqual(result["week"], 150)
             self.assertEqual(result["month"], 150)
+            self.assertEqual(result["first_activity"],
+                             int(dt.datetime(2026, 9, 17, 12, tzinfo=dt.timezone.utc).timestamp()))
             self.assertEqual(len(result["daily30"]), 30)
 
 
@@ -92,6 +94,18 @@ class PacingTests(unittest.TestCase):
         self.assertAlmostEqual(result["used"], 50.4, places=1)
         self.assertTrue(result["estimated"])
         self.assertEqual(result["reset"], start + 3 * 18000)
+
+    def test_synthetic_window_anchors_to_first_activity(self):
+        activity = int(dt.datetime(2026, 9, 17, 14, 12, 55,
+                                   tzinfo=dt.timezone.utc).timestamp())
+        anchor = int(dt.datetime(2026, 9, 17, 14, 15,
+                                 tzinfo=dt.timezone.utc).timestamp())
+        weekly = {"used": 8, "minutes": 10080, "reset": anchor + 6 * 86400}
+        points = [{"at": activity, "used": 0, "reset": weekly["reset"]}]
+        result = usage.synthetic_five(weekly, points, anchor + 5 * 3600 + 1800, activity)
+        self.assertEqual(result["reset"], anchor + 5 * 3600)
+        self.assertAlmostEqual(result["pace_delta"], 168.8, places=1)
+        self.assertIn("9:15 AM", result["description"])
 
     def test_server_window_normalization(self):
         value = usage.window({"usedPercent": 12, "windowDurationMins": 10080,
