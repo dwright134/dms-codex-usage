@@ -1,8 +1,8 @@
 {
   "id": "codexusage",
   "name": "Codex Usage",
-  "description": "Live Codex quota pacing, five-hour budget, token activity, and API-equivalent value",
-  "version": "0.1.5",
+  "description": "Live Codex quota pacing, daily budget, token activity, and API-equivalent value",
+  "version": "0.1.6",
   "author": "Daniel Wright",
   "icon": "terminal",
   "type": "widget",

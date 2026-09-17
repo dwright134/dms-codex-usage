@@ -82,7 +82,7 @@ PluginComponent {
             var level = used >= 90 ? 90 : (used >= 80 ? 80 : 0);
             var prior = seen[id] || {};
             if (!level || (prior.reset === b.RESET && prior.level >= level)) return;
-            ToastService.showWarning("Codex " + (b.LABEL || (id === "primary" ? "5h budget" : "weekly limit")) + ": " + Math.round(used) + "%", "Resets in " + countdown(b.RESET));
+            ToastService.showWarning("Codex " + (b.LABEL || (id === "primary" ? "daily budget" : "weekly limit")) + ": " + Math.round(used) + "%", "Resets in " + countdown(b.RESET));
             seen[id] = {reset: b.RESET, level: level};
             changed = true;
         });
@@ -735,7 +735,7 @@ PluginComponent {
                                 StyledText {
                                     width: parent.width
                                     horizontalAlignment: root.isVertical ? Text.AlignHCenter : Text.AlignLeft
-                                    text: quotaCard.bucket.LABEL || (quotaCard.modelData === "primary" ? "5h budget" : "Weekly limit")
+                                    text: quotaCard.bucket.LABEL || (quotaCard.modelData === "primary" ? "Daily budget" : "Weekly limit")
                                     font.pixelSize: 15; font.weight: Font.DemiBold
                                     color: Theme.surfaceText
                                 }
@@ -749,7 +749,7 @@ PluginComponent {
                                     width: parent.width
                                     horizontalAlignment: root.isVertical ? Text.AlignHCenter : Text.AlignLeft
                                     text: quotaCard.expired
-                                          ? (quotaCard.estimated ? "Five-hour session complete" : "Waiting for fresh data")
+                                          ? (quotaCard.estimated ? "Daily budget complete" : "Waiting for fresh data")
                                           : (quotaCard.bucket.RESET
                                              ? (quotaCard.estimated ? "Ends in " : "Reset in ") + root.countdown(quotaCard.bucket.RESET)
                                              : "Reset unavailable")

@@ -10,9 +10,8 @@ import shutil
 import subprocess
 import time
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 WEEK_MINUTES = 10080
-FIVE_HOURS = 18000
 LONG_CONTEXT = 272000
 
 # USD per million text tokens: input, cached input, cache write, output.
@@ -286,22 +285,20 @@ def pace(used, minutes, reset, now):
     return difference, "On pace"
 
 
-def rounded_activity_start(timestamp):
-    """Round a local activity timestamp to the nearest five-minute mark."""
-    return int((timestamp + 150) // 300 * 300)
-
-
 def clock_time(timestamp):
     value = dt.datetime.fromtimestamp(timestamp).astimezone().strftime("%I:%M %p")
     return value.lstrip("0")
 
 
-def synthetic_five(weekly, points, now, activity_start=None):
+def synthetic_daily(weekly, points, now):
     duration = weekly["minutes"] * 60
-    start = weekly["reset"] - duration
-    anchor = rounded_activity_start(activity_start) if activity_start else start
-    slot_start = anchor + max(0, (now - anchor) // FIVE_HOURS) * FIVE_HOURS
-    slot_end = min(slot_start + FIVE_HOURS, weekly["reset"])
+    week_start = weekly["reset"] - duration
+    local_now = dt.datetime.fromtimestamp(now).astimezone()
+    midnight = dt.datetime.combine(local_now.date(), dt.time.min, local_now.tzinfo)
+    next_midnight = dt.datetime.combine(local_now.date() + dt.timedelta(days=1),
+                                        dt.time.min, local_now.tzinfo)
+    slot_start = max(int(midnight.timestamp()), week_start)
+    slot_end = min(int(next_midnight.timestamp()), weekly["reset"])
     candidates = (p for p in points if p.get("reset") == weekly["reset"]
                   and slot_start - 600 <= p.get("at", 0) <= now)
     candidates = sorted(candidates, key=lambda p: abs(p["at"] - slot_start))
@@ -311,17 +308,18 @@ def synthetic_five(weekly, points, now, activity_start=None):
     used = 100 * weekly_delta / allocated if allocated else 0
     coverage = max(0, min(now, slot_end) - slot_start)
     difference = used - 100 * coverage / max(1, slot_end - slot_start)
-    if coverage < 300:
-        label = "Collecting a five-hour baseline"
+    if baseline["at"] > slot_start + 600 and now - baseline["at"] < 300:
+        label = "Collecting a daily baseline"
     elif difference >= 5:
         label = f"{round(difference)}% over pace"
     elif difference <= -5:
         label = f"{round(-difference)}% under pace"
     else:
         label = "On pace"
+    end_label = "midnight" if slot_end == int(next_midnight.timestamp()) else clock_time(slot_end)
     return {"used": used, "minutes": round((slot_end - slot_start) / 60), "reset": slot_end,
             "pace_delta": difference, "pace": label, "estimated": True,
-            "description": f"Pacing from {clock_time(slot_start)} to {clock_time(slot_end)} · "
+            "description": f"Daily pacing through {end_label} · "
                            f"estimated from {weekly_delta:.1f}% of weekly quota consumed"
                            + ("" if baseline["at"] <= slot_start + 600 else " · partial history")}
 
@@ -386,8 +384,7 @@ def main():
         weekly = {"used": float(latest["used"]), "minutes": WEEK_MINUTES,
                   "reset": int(latest["reset"]),
                   "description": "Last quota recorded in a local Codex session"}
-    five = actual_five or (synthetic_five(weekly, history, now, stats.get("first_activity"))
-                           if weekly else None)
+    primary = actual_five or (synthetic_daily(weekly, history, now) if weekly else None)
 
     usage = server.get("usage") or {}
     summary = usage.get("summary") or {}
@@ -396,14 +393,15 @@ def main():
                   "current_streak_days": summary.get("currentStreakDays"),
                   "estimate_label": "Estimated API equivalent", "pricing_version": "2026-09-17"})
     emit("STATS", json.dumps(stats, separators=(",", ":")))
-    emit("GROUPS", "primary,secondary" if five and weekly else "primary" if five else "secondary" if weekly else "")
-    emit("LOGGED_IN", str(bool(weekly or five)).lower())
+    emit("GROUPS", "primary,secondary" if primary and weekly else "primary" if primary else "secondary" if weekly else "")
+    emit("LOGGED_IN", str(bool(weekly or primary)).lower())
     emit("PLAN", str(limits.get("planType") or "Codex").replace("_", " ").title())
     emit("UPDATED_AT", dt.datetime.fromtimestamp(server_at, dt.timezone.utc).isoformat())
     emit("LIVE", str(live).lower())
     emit("VERSION", VERSION)
-    if five:
-        emit_bucket("primary", "5h budget" if five.get("estimated") else "Five-hour limit", five, now)
+    if primary:
+        emit_bucket("primary", "Daily budget" if primary.get("estimated") else "Five-hour limit",
+                    primary, now)
     if weekly:
         emit_bucket("secondary", "Weekly limit", weekly, now)
 

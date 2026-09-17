@@ -83,31 +83,45 @@ class SessionTests(unittest.TestCase):
 
 
 class PacingTests(unittest.TestCase):
-    def test_synthetic_five_hour_budget(self):
-        reset = 2_000_000_000
-        duration = 10080 * 60
-        start = reset - duration
-        now = start + 2 * 18000 + 9000
-        weekly = {"used": 11.5, "minutes": 10080, "reset": reset}
-        points = [{"at": start + 2 * 18000, "used": 10.0, "reset": reset}]
-        result = usage.synthetic_five(weekly, points, now)
-        self.assertAlmostEqual(result["used"], 50.4, places=1)
+    def test_synthetic_daily_budget_and_pacing(self):
+        local = dt.datetime.now().astimezone().tzinfo
+        midnight = dt.datetime(2026, 9, 17, tzinfo=local)
+        now = int((midnight + dt.timedelta(hours=12)).timestamp())
+        reset = int((midnight + dt.timedelta(days=5, hours=8)).timestamp())
+        weekly = {"used": 17.142857, "minutes": 10080, "reset": reset}
+        points = [{"at": int(midnight.timestamp()), "used": 10.0, "reset": reset}]
+        result = usage.synthetic_daily(weekly, points, now)
+        self.assertAlmostEqual(result["used"], 50.0, places=1)
+        self.assertAlmostEqual(result["pace_delta"], 0.0, places=1)
         self.assertTrue(result["estimated"])
-        self.assertEqual(result["reset"], start + 3 * 18000)
+        self.assertEqual(result["reset"], int((midnight + dt.timedelta(days=1)).timestamp()))
 
-    def test_synthetic_window_advances_from_first_activity(self):
-        activity = int(dt.datetime(2026, 9, 17, 14, 12, 55,
-                                   tzinfo=dt.timezone.utc).timestamp())
-        anchor = int(dt.datetime(2026, 9, 17, 14, 15,
-                                 tzinfo=dt.timezone.utc).timestamp())
-        weekly = {"used": 8, "minutes": 10080, "reset": anchor + 6 * 86400}
-        points = [{"at": activity, "used": 0, "reset": weekly["reset"]},
-                  {"at": anchor + 5 * 3600, "used": 7.5, "reset": weekly["reset"]}]
-        result = usage.synthetic_five(weekly, points, anchor + 5 * 3600 + 1800, activity)
-        self.assertEqual(result["reset"], anchor + 10 * 3600)
-        self.assertAlmostEqual(result["used"], 16.8, places=1)
-        self.assertAlmostEqual(result["pace_delta"], 6.8, places=1)
-        self.assertIn("2:15 PM to 7:15 PM", result["description"])
+    def test_synthetic_daily_budget_uses_partial_week_day(self):
+        local = dt.datetime.now().astimezone().tzinfo
+        midnight = dt.datetime(2026, 9, 17, tzinfo=local)
+        week_start = int((midnight + dt.timedelta(hours=6)).timestamp())
+        now = int((midnight + dt.timedelta(hours=15)).timestamp())
+        reset = week_start + 7 * 86400
+        allocated = 100 * 18 / 168
+        weekly = {"used": 4 + allocated / 2, "minutes": 10080, "reset": reset}
+        points = [{"at": week_start, "used": 4, "reset": reset}]
+        result = usage.synthetic_daily(weekly, points, now)
+        self.assertAlmostEqual(result["used"], 50.0, places=1)
+        self.assertAlmostEqual(result["pace_delta"], 0.0, places=1)
+        self.assertEqual(result["minutes"], 18 * 60)
+        self.assertIn("Daily pacing", result["description"])
+
+    def test_late_daily_baseline_starts_pacing_after_five_minutes(self):
+        local = dt.datetime.now().astimezone().tzinfo
+        midnight = dt.datetime(2026, 9, 17, tzinfo=local)
+        baseline = int((midnight + dt.timedelta(hours=9)).timestamp())
+        now = baseline + 301
+        reset = int((midnight + dt.timedelta(days=5)).timestamp())
+        weekly = {"used": 10.5, "minutes": 10080, "reset": reset}
+        points = [{"at": baseline, "used": 10, "reset": reset}]
+        result = usage.synthetic_daily(weekly, points, now)
+        self.assertNotEqual(result["pace"], "Collecting a daily baseline")
+        self.assertIn("partial history", result["description"])
 
     def test_server_window_normalization(self):
         value = usage.window({"usedPercent": 12, "windowDurationMins": 10080,
