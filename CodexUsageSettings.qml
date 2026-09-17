@@ -33,7 +33,7 @@ PluginSettings {
             }
             StyledText {
                 width: parent.width
-                text: "Live quota pacing, a synthetic five-hour budget, token activity, and estimated API-equivalent value."
+                text: "Live quota pacing, a synthetic daily budget, token activity, and estimated API-equivalent value."
                 wrapMode: Text.WordWrap
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
@@ -104,7 +104,7 @@ PluginSettings {
     ToggleSetting {
         settingKey: "alertsEnabled"
         label: "Usage alerts"
-        description: "Show a warning at 80% and 90% usage for the five-hour budget and weekly limit."
+        description: "Show a warning at 80% and 90% usage for the daily budget and weekly limit."
         defaultValue: false
     }
 }

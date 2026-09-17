@@ -6,7 +6,7 @@ A DankBar widget for live Codex limits, quota pacing, local token activity, and 
 
 - Live Codex quota data through the official `codex app-server` interface
 - Weekly percentage used, remaining quota, reset countdown, and pacing
-- Synthetic five-hour budget when Codex does not provide a five-hour limit
+- Synthetic daily budget when Codex provides only a weekly limit
 - Pace markers showing the even-burn position on each usage ring
 - Token totals for today, the last seven days, and the current calendar month
 - Seven-day and 30-day activity charts
@@ -45,17 +45,17 @@ dms restart
 
 [`VERSION`](VERSION) and the `version` field in [`plugin.json`](plugin.json) are updated together for each release. Registry installations can use the normal DMS plugin update command after this repository is added to a DMS registry.
 
-## How the five-hour budget works
+## How the daily budget works
 
-Some Codex plans expose only a weekly limit. The widget divides an evenly distributed weekly budget into five-hour blocks:
+Some Codex plans expose only a weekly limit. The widget divides an evenly distributed weekly budget into local calendar days:
 
 ```text
-five-hour share of weekly quota = 5 / 168 = 2.976%
+daily share of weekly quota = 24 / 168 = 14.286%
 ```
 
-The first session starts with the day's first recorded Codex token activity, rounded to the nearest five minutes. Each new five-hour session starts when the previous one ends. The widget saves weekly quota snapshots and compares the current percentage with the percentage at the start of the current session. Consuming 1.5 percentage points of weekly quota uses about 50% of the suggested five-hour budget.
+Each daily period runs from local midnight to the next midnight. When the weekly quota resets during a day, the widget prorates the periods before and after the reset. It saves weekly quota snapshots and compares the current percentage with the closest snapshot at the start of the period. Consuming about 7.14 percentage points of weekly quota uses 50% of a full daily budget. The pace marker compares that usage with the time elapsed in the period.
 
-This is a pacing tool. It does not represent an OpenAI-enforced five-hour limit. A session may show partial history while the widget collects its baseline.
+This is a pacing tool. It does not represent an OpenAI-enforced daily limit. A day may show partial history while the widget collects its baseline. If Codex reports an enforced five-hour limit, the widget displays that limit instead of the daily estimate.
 
 ## API-equivalent value
 
