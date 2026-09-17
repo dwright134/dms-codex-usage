@@ -1,0 +1,22 @@
+{
+  "id": "codexUsage",
+  "name": "Codex Usage",
+  "description": "Live Codex quota pacing, five-hour budget, token activity, and API-equivalent value",
+  "version": "0.1.0",
+  "author": "Daniel Wright",
+  "icon": "terminal",
+  "type": "widget",
+  "capabilities": [
+    "dankbar-widget"
+  ],
+  "component": "./CodexUsageWidget.qml",
+  "requires": [
+    "python3",
+    "codex"
+  ],
+  "permissions": [
+    "settings_read",
+    "settings_write"
+  ],
+  "settings": "./CodexUsageSettings.qml"
+}
