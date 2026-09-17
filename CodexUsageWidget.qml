@@ -320,19 +320,19 @@ PluginComponent {
             spacing: Theme.spacingS
             DankIcon {
                 name: "terminal"
-                size: 18
+                size: root.iconSizeLarge
                 color: Theme.primary
                 visible: root.showIcon
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
                 text: "5h " + root.limitText("primary")
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Theme.barTextSize(root.barThickness, root.barConfig ? root.barConfig.fontScale : undefined, root.barConfig ? root.barConfig.maximizeWidgetText : undefined)
                 color: Theme.surfaceText
             }
             StyledText {
                 text: "Week " + root.limitText("secondary")
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Theme.barTextSize(root.barThickness, root.barConfig ? root.barConfig.fontScale : undefined, root.barConfig ? root.barConfig.maximizeWidgetText : undefined)
                 color: Theme.surfaceText
             }
         }
@@ -344,7 +344,7 @@ PluginComponent {
 
             DankIcon {
                 name: "terminal"
-                size: 18
+                size: root.iconSizeLarge
                 color: Theme.primary
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible: root.showIcon
@@ -393,7 +393,7 @@ PluginComponent {
 
                     StyledText {
                         text: root.limitText(modelData)
-                        font.pixelSize: Theme.fontSizeSmall
+                        font.pixelSize: Theme.barTextSize(root.barThickness, root.barConfig ? root.barConfig.fontScale : undefined, root.barConfig ? root.barConfig.maximizeWidgetText : undefined)
                         color: Theme.surfaceText
                         anchors.horizontalCenter: parent.horizontalCenter
                     }

@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import time
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 WEEK_MINUTES = 10080
 FIVE_HOURS = 18000
 LONG_CONTEXT = 272000
