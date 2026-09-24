@@ -329,7 +329,7 @@ PluginComponent {
                 layer.enabled: true
                 layer.effect: MultiEffect {
                     colorization: 1.0
-                    colorizationColor: Theme.primary
+                    colorizationColor: Theme.surfaceText
                 }
             }
             StyledText {
@@ -354,7 +354,7 @@ PluginComponent {
                 layer.enabled: true
                 layer.effect: MultiEffect {
                     colorization: 1.0
-                    colorizationColor: Theme.primary
+                    colorizationColor: Theme.surfaceText
                 }
             }
 
