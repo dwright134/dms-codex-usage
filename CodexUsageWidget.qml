@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Effects
+import QtQuick.Controls.impl
 import Quickshell
 import Quickshell.Io
 import qs.Common
@@ -319,18 +319,14 @@ PluginComponent {
     horizontalBarPill: Component {
         Row {
             spacing: Theme.spacingS
-            Image {
+            ColorImage {
                 source: root.logoSource
                 width: root.iconSizeLarge
                 height: root.iconSizeLarge
                 fillMode: Image.PreserveAspectFit
+                color: Theme.surfaceText
                 visible: root.showIcon
                 anchors.verticalCenter: parent.verticalCenter
-                layer.enabled: true
-                layer.effect: MultiEffect {
-                    colorization: 1.0
-                    colorizationColor: Theme.surfaceText
-                }
             }
             StyledText {
                 text: root.limitText("primary")
@@ -344,18 +340,14 @@ PluginComponent {
         Column {
             spacing: Theme.spacingXS || 4
 
-            Image {
+            ColorImage {
                 source: root.logoSource
                 width: root.iconSizeLarge
                 height: root.iconSizeLarge
                 fillMode: Image.PreserveAspectFit
+                color: Theme.surfaceText
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible: root.showIcon
-                layer.enabled: true
-                layer.effect: MultiEffect {
-                    colorization: 1.0
-                    colorizationColor: Theme.surfaceText
-                }
             }
 
             Repeater {
