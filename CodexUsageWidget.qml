@@ -319,15 +319,21 @@ PluginComponent {
     horizontalBarPill: Component {
         Row {
             spacing: Theme.spacingS
-            DankIcon {
-                name: "terminal"
-                size: root.iconSizeLarge
-                color: Theme.primary
+            Image {
+                source: root.logoSource
+                width: root.iconSizeLarge
+                height: root.iconSizeLarge
+                fillMode: Image.PreserveAspectFit
                 visible: root.showIcon
                 anchors.verticalCenter: parent.verticalCenter
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    colorization: 1.0
+                    colorizationColor: Theme.primary
+                }
             }
             StyledText {
-                text: "Daily " + root.limitText("primary")
+                text: root.limitText("primary")
                 font.pixelSize: Theme.barTextSize(root.barThickness, root.barConfig ? root.barConfig.fontScale : undefined, root.barConfig ? root.barConfig.maximizeWidgetText : undefined)
                 color: Theme.surfaceText
             }
@@ -338,12 +344,18 @@ PluginComponent {
         Column {
             spacing: Theme.spacingXS || 4
 
-            DankIcon {
-                name: "terminal"
-                size: root.iconSizeLarge
-                color: Theme.primary
+            Image {
+                source: root.logoSource
+                width: root.iconSizeLarge
+                height: root.iconSizeLarge
+                fillMode: Image.PreserveAspectFit
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible: root.showIcon
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    colorization: 1.0
+                    colorizationColor: Theme.primary
+                }
             }
 
             Repeater {

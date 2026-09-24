@@ -44,7 +44,7 @@ PluginSettings {
     ToggleSetting {
         settingKey: "showIcon"
         label: "Bar icon"
-        description: "Show the terminal icon beside your usage on horizontal and vertical bars."
+        description: "Show the Codex icon beside your usage on horizontal and vertical bars."
         defaultValue: true
     }
 
